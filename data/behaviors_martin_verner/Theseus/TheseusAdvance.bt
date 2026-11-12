@@ -1,0 +1,143 @@
+{
+  "name": "Root",
+  "id": "85607254-1b3f-4c81-8efe-eec95062218b",
+  "type": "supervisedParallel",
+  "subtrees": [
+    {
+      "name": "Wait Forever",
+      "id": "e8b7e76a-2c09-4ce1-a0ca-26123985cb1b",
+      "type": "waitForever"
+    },
+    {
+      "name": "Wait for msg and update path",
+      "id": "c5c2535b-69f7-4c7a-b485-03a4bd39e6d0",
+      "type": "sequence",
+      "subtrees": [
+        {
+          "name": "Debug",
+          "id": "c1da20db-c160-4e37-b74c-fb5917018d77",
+          "type": "scriptAction",
+          "script": [
+            "DebugLog(\"AAAAA\")"
+          ]
+        },
+        {
+          "name": "MinotaurPositionUpdate",
+          "id": "7c0e707e-d69a-4a96-8b80-0c052ffe1541",
+          "type": "messageHandler",
+          "subject": "MinotaurPositionUpdate",
+          "handler": [
+            "if msg.value.position then",
+            "\tloc.lastKnownMinotaurPosition = msg.value.position",
+            "end"
+          ]
+        },
+        {
+          "name": "Move and update path",
+          "id": "0dda7569-0605-49c8-a08a-719b465e7bba",
+          "type": "sequence",
+          "subtrees": [
+            {
+              "name": "Move",
+              "id": "97b17342-e135-43f1-a17b-c60ede43f260",
+              "type": "move",
+              "position": [
+                "loc.lastKnownMinotaurPosition"
+              ]
+            },
+            {
+              "name": "Hihglight Path",
+              "id": "9ff729f3-9eba-4fb3-b672-5ecf7da535d8",
+              "type": "scriptAction",
+              "decorators": [
+                {
+                  "id": "cb7e9371-a66f-48bb-8bd4-0256f033d514",
+                  "type": "loopForever",
+                  "name": "Build and draw path"
+                },
+                {
+                  "id": "5a41b61c-adff-4463-a60b-2d738940b9af",
+                  "type": "scriptAction",
+                  "name": "Build path",
+                  "script": [
+                    "local future = self:GetPath()",
+                    "if future:IsReady() then",
+                    "  loc.path = future:Value()",
+                    "  if loc.path == nil then",
+                    "    -- entity is not following a path",
+                    "  end",
+                    "end"
+                  ]
+                }
+              ],
+              "script": [
+                "if loc.path ~= null then",
+                "    local num_segments = 20.0",
+                "    local segment_step = loc.path:Length() / num_steps",
+                "    for i=0, num_segments - 1.0, 1.0 do",
+                "        ai_core_public.draw.Line(",
+                "        loc.path:PositionAlongPath(i * segment_step),",
+                "        loc.path:PositionAlongPath((i+1) * segment_step),",
+                "        0, 0, 1, 1",
+                "        )",
+                "    end",
+                "end",
+                ""
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "nodesInfo": [
+      {
+        "id": "85607254-1b3f-4c81-8efe-eec95062218b",
+        "position": "2000,300",
+        "width": 146.66666666666697,
+        "height": 61.444444444444457
+      },
+      {
+        "id": "e8b7e76a-2c09-4ce1-a0ca-26123985cb1b",
+        "position": "1825,475"
+      },
+      {
+        "id": "c5c2535b-69f7-4c7a-b485-03a4bd39e6d0",
+        "position": "2202.64682539683,491.111111111111"
+      },
+      {
+        "id": "c1da20db-c160-4e37-b74c-fb5917018d77",
+        "position": "2000,625"
+      },
+      {
+        "id": "7c0e707e-d69a-4a96-8b80-0c052ffe1541",
+        "position": "2162.5,625"
+      },
+      {
+        "id": "0dda7569-0605-49c8-a08a-719b465e7bba",
+        "position": "2400,625"
+      },
+      {
+        "id": "97b17342-e135-43f1-a17b-c60ede43f260",
+        "position": "2312.5,775"
+      },
+      {
+        "id": "9ff729f3-9eba-4fb3-b672-5ecf7da535d8",
+        "position": "2562.5,750"
+      }
+    ],
+    "editorObjects": [],
+    "canvasSize": "3840,2400"
+  },
+  "parameters": [
+    {
+      "name": "orderData",
+      "isOptional": false
+    }
+  ],
+  "locals": {
+    "lastKnownMinotaurPosition": "return self:GetPosition()",
+    "path": "return nil"
+  }
+}
