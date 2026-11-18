@@ -31,13 +31,7 @@ return {
             Advance = {
                 description = 'Advance',
                 tree = 'TheseusAdvance',
-                parameters = {
-                    destination = {
-                        description = "Target position.",
-                        validate = standard_behaviors.IsOfTypeFn("Vec3"),
-                        mandatory = true,
-                    },
-                }, -- here is supposed to be 
+                parameters = {}, -- here is supposed to be 
             },
         },
     },

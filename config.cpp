@@ -13,7 +13,7 @@ class CfgPatches
             vbs2_people,
             vbs2_plugins_function_library,
             vbs2_vbs_plugins_standard_behaviors,
-            vbs_vbs_plugins_ai_core_public,
+            vbs2_vbs_plugins_ai_core_public,
             vbs2_vbs_plugins_behaviors_minotaur
         };
         modules[] = {

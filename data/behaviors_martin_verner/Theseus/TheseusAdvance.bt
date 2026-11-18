@@ -9,85 +9,213 @@
       "type": "waitForever"
     },
     {
-      "name": "Wait for msg and update path",
-      "id": "c5c2535b-69f7-4c7a-b485-03a4bd39e6d0",
+      "name": "MinotaurPositionUpdate",
+      "id": "7c0e707e-d69a-4a96-8b80-0c052ffe1541",
+      "type": "messageHandler",
+      "subject": "MinotaurPositionUpdate",
+      "handler": [
+        "if msg.value.position then",
+        "\tloc.lastKnownMinotaurPosition = msg.value.position",
+        "end"
+      ]
+    },
+    {
+      "name": "look around",
+      "id": "c2f5863d-789f-428d-9db6-4f7271a4c7ab",
       "type": "sequence",
       "subtrees": [
         {
-          "name": "Debug",
-          "id": "c1da20db-c160-4e37-b74c-fb5917018d77",
+          "name": "look for targets",
+          "id": "ff48f864-9770-4ea6-8df9-13c9869d8337",
           "type": "scriptAction",
           "script": [
-            "DebugLog(\"AAAAA\")"
+            "-- infantryman soldier override reaction",
+            "loc.enemies = self:GetVisibleEnemies(50)",
+            "DebugLog(\"Enemies spotted: \" .. #loc.enemies)"
           ]
         },
         {
-          "name": "MinotaurPositionUpdate",
-          "id": "7c0e707e-d69a-4a96-8b80-0c052ffe1541",
-          "type": "messageHandler",
-          "subject": "MinotaurPositionUpdate",
-          "handler": [
-            "if msg.value.position then",
-            "\tloc.lastKnownMinotaurPosition = msg.value.position",
-            "end"
-          ]
-        },
-        {
-          "name": "Move and update path",
-          "id": "0dda7569-0605-49c8-a08a-719b465e7bba",
-          "type": "sequence",
-          "subtrees": [
-            {
-              "name": "Move",
-              "id": "97b17342-e135-43f1-a17b-c60ede43f260",
-              "type": "move",
-              "position": [
-                "loc.lastKnownMinotaurPosition"
-              ]
-            },
-            {
-              "name": "Hihglight Path",
-              "id": "9ff729f3-9eba-4fb3-b672-5ecf7da535d8",
-              "type": "scriptAction",
-              "decorators": [
-                {
-                  "id": "cb7e9371-a66f-48bb-8bd4-0256f033d514",
-                  "type": "loopForever",
-                  "name": "Build and draw path"
-                },
-                {
-                  "id": "5a41b61c-adff-4463-a60b-2d738940b9af",
-                  "type": "scriptAction",
-                  "name": "Build path",
-                  "script": [
-                    "local future = self:GetPath()",
-                    "if future:IsReady() then",
-                    "  loc.path = future:Value()",
-                    "  if loc.path == nil then",
-                    "    -- entity is not following a path",
-                    "  end",
-                    "end"
-                  ]
-                }
-              ],
-              "script": [
-                "if loc.path ~= null then",
-                "    local num_segments = 20.0",
-                "    local segment_step = loc.path:Length() / num_steps",
-                "    for i=0, num_segments - 1.0, 1.0 do",
-                "        ai_core_public.draw.Line(",
-                "        loc.path:PositionAlongPath(i * segment_step),",
-                "        loc.path:PositionAlongPath((i+1) * segment_step),",
-                "        0, 0, 1, 1",
-                "        )",
-                "    end",
-                "end",
-                ""
-              ]
-            }
+          "name": "Wait 0,33",
+          "id": "ec23e13c-56a1-4d08-8bc4-4115423feda2",
+          "type": "wait",
+          "time": [
+            "return 0.33"
           ]
         }
       ]
+    },
+    {
+      "name": "Shoot or move towards Minotaur",
+      "id": "7ae6d39d-ae25-407d-ae8d-b3bffad35dc7",
+      "type": "selector",
+      "subtrees": [
+        {
+          "name": "Lock target and fire",
+          "id": "c8f974dc-8906-4725-9cc4-72e8eb8466d3",
+          "type": "sequence",
+          "subtrees": [
+            {
+              "name": "Get Target position",
+              "id": "6c98ac0a-698b-4a3d-97e8-9a299e2407f1",
+              "type": "scriptAction",
+              "script": [
+                "if #loc.enemies > 0 then",
+                "    loc.target = loc.enemies[0]",
+                "else loc.target = nil",
+                "end"
+              ]
+            },
+            {
+              "name": "fight",
+              "id": "dd7deb64-4a21-4bba-90d7-fdb6206a1d70",
+              "type": "sequence",
+              "subtrees": [
+                {
+                  "name": "Aim",
+                  "id": "eff7fb73-173c-4e30-8050-a98574e9c465",
+                  "type": "scriptAction",
+                  "script": [
+                    "self:ReqHeadingAimAtEntity(loc.target)"
+                  ]
+                },
+                {
+                  "name": "fire within limit",
+                  "id": "b954699f-536b-4d69-844c-36b67c2819b6",
+                  "type": "parallel",
+                  "subtrees": [
+                    {
+                      "name": "Fire",
+                      "id": "6ce9e6e0-3fc2-46dd-a239-e127aa485b65",
+                      "type": "fire",
+                      "rounds": [
+                        "return 30"
+                      ],
+                      "forced": false
+                    },
+                    {
+                      "name": "Fire",
+                      "id": "a33156cb-478f-43a3-8c46-d3f54bf24703",
+                      "type": "fire",
+                      "decorators": [
+                        {
+                          "id": "20fb94f0-df37-45f9-8e5f-299e75d81e23",
+                          "type": "wait",
+                          "name": "2",
+                          "time": [
+                            "return 1.4"
+                          ]
+                        }
+                      ],
+                      "rounds": [
+                        "return 10"
+                      ],
+                      "forced": true
+                    }
+                  ],
+                  "waitForAll": true
+                },
+                {
+                  "name": "Reload",
+                  "id": "5138db2c-d1c0-4d51-8f83-39a8b6fb2c5c",
+                  "type": "reloadWeapon"
+                }
+              ],
+              "decorators": [
+                {
+                  "id": "ffa134fe-403b-4939-a1e2-2763ec9b4461",
+                  "type": "scriptCondition",
+                  "name": "Target not null",
+                  "script": [
+                    "return loc.target ~=nil"
+                  ]
+                }
+              ]
+            }
+          ],
+          "decorators": [
+            {
+              "id": "6f3fcc9a-0165-4352-9c84-a1758e1270f7",
+              "type": "scriptCondition",
+              "name": "Can see minotaur ?",
+              "script": [
+                "return #loc.enemies ~= nil and #loc.enemies > 0"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "<unnamed>",
+          "id": "49936068-1aba-455a-a2e3-117197a011ec",
+          "type": "selector",
+          "subtrees": [
+            {
+              "name": "Succeed",
+              "id": "15c053e1-a0c3-4f89-bde0-f897d238278f",
+              "type": "success",
+              "decorators": [
+                {
+                  "id": "43d6a1eb-7620-4f2e-bc14-4fc7806115cd",
+                  "type": "valueComparison",
+                  "name": "Path not same",
+                  "operator": "not equal",
+                  "lhs": {
+                    "type": "local",
+                    "key": "lastKnownMinotaurPosition"
+                  },
+                  "rhs": {
+                    "type": "local",
+                    "key": "previousPath"
+                  }
+                },
+                {
+                  "id": "b56c5ea7-cc3b-4c71-af8f-7850d81083f8",
+                  "type": "scriptAction",
+                  "name": "Set new path",
+                  "script": [
+                    "loc.previousPath=loc.lastKnownMinotaurPosition"
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Move and Wait at Corners",
+              "id": "aaa3bff6-56d9-4379-84c3-9d6575594e6d",
+              "type": "reference",
+              "decorators": [
+                {
+                  "id": "01b50376-fcbc-4675-8ff6-1cf285539ea3",
+                  "type": "valueComparison",
+                  "name": "Path not nil",
+                  "operator": "not equal",
+                  "lhs": {
+                    "type": "local",
+                    "key": "lastKnownMinotaurPosition"
+                  },
+                  "rhs": {
+                    "type": "nil"
+                  }
+                }
+              ],
+              "target": [
+                "behaviors_martin_verner",
+                "MoveWaitCorners"
+              ],
+              "arguments": {
+                "target": "loc.lastKnownMinotaurPosition"
+              }
+            }
+          ],
+          "active": true
+        }
+      ],
+      "decorators": [
+        {
+          "id": "0b52440b-29e6-4fee-9925-c33f311e8322",
+          "type": "succeeder",
+          "name": "Always Succeed"
+        }
+      ],
+      "active": true
     }
   ],
   "meta": {
@@ -100,44 +228,88 @@
       },
       {
         "id": "e8b7e76a-2c09-4ce1-a0ca-26123985cb1b",
-        "position": "1825,475"
-      },
-      {
-        "id": "c5c2535b-69f7-4c7a-b485-03a4bd39e6d0",
-        "position": "2202.64682539683,491.111111111111"
-      },
-      {
-        "id": "c1da20db-c160-4e37-b74c-fb5917018d77",
-        "position": "2000,625"
+        "position": "1825,487.5"
       },
       {
         "id": "7c0e707e-d69a-4a96-8b80-0c052ffe1541",
-        "position": "2162.5,625"
+        "position": "2000,487.5"
       },
       {
-        "id": "0dda7569-0605-49c8-a08a-719b465e7bba",
-        "position": "2400,625"
+        "id": "c2f5863d-789f-428d-9db6-4f7271a4c7ab",
+        "position": "2530.95781688764,343.833333333333"
       },
       {
-        "id": "97b17342-e135-43f1-a17b-c60ede43f260",
-        "position": "2312.5,775"
+        "id": "ff48f864-9770-4ea6-8df9-13c9869d8337",
+        "position": "2455.95781688764,443.833333333333"
       },
       {
-        "id": "9ff729f3-9eba-4fb3-b672-5ecf7da535d8",
-        "position": "2562.5,750"
+        "id": "ec23e13c-56a1-4d08-8bc4-4115423feda2",
+        "position": "2618.45781688764,443.833333333333"
+      },
+      {
+        "id": "7ae6d39d-ae25-407d-ae8d-b3bffad35dc7",
+        "position": "2550,562.5"
+      },
+      {
+        "id": "c8f974dc-8906-4725-9cc4-72e8eb8466d3",
+        "position": "2325,700"
+      },
+      {
+        "id": "6c98ac0a-698b-4a3d-97e8-9a299e2407f1",
+        "position": "2012.5,1000"
+      },
+      {
+        "id": "dd7deb64-4a21-4bba-90d7-fdb6206a1d70",
+        "position": "2325,837.5"
+      },
+      {
+        "id": "eff7fb73-173c-4e30-8050-a98574e9c465",
+        "position": "2250,1000"
+      },
+      {
+        "id": "b954699f-536b-4d69-844c-36b67c2819b6",
+        "position": "2412.5,1000"
+      },
+      {
+        "id": "6ce9e6e0-3fc2-46dd-a239-e127aa485b65",
+        "position": "2312.5,1137.5"
+      },
+      {
+        "id": "a33156cb-478f-43a3-8c46-d3f54bf24703",
+        "position": "2475,1112.5"
+      },
+      {
+        "id": "5138db2c-d1c0-4d51-8f83-39a8b6fb2c5c",
+        "position": "2587.5,1000"
+      },
+      {
+        "id": "49936068-1aba-455a-a2e3-117197a011ec",
+        "position": "3032.45454545455,670.191197691198"
+      },
+      {
+        "id": "15c053e1-a0c3-4f89-bde0-f897d238278f",
+        "position": "2837.5,800"
+      },
+      {
+        "id": "aaa3bff6-56d9-4379-84c3-9d6575594e6d",
+        "position": "3075,787.5"
       }
     ],
     "editorObjects": [],
-    "canvasSize": "3840,2400"
+    "canvasSize": "4140.5,2400"
   },
   "parameters": [
     {
       "name": "orderData",
-      "isOptional": false
+      "isOptional": true,
+      "defaultValue": "nil"
     }
   ],
   "locals": {
-    "lastKnownMinotaurPosition": "return self:GetPosition()",
-    "path": "return nil"
+    "lastKnownMinotaurPosition": "return nil",
+    "path": "return nil",
+    "previousPath": "return nil",
+    "target": "return nil",
+    "enemies": "return nil"
   }
 }

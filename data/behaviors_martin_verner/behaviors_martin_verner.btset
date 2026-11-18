@@ -1,10 +1,12 @@
 {
   "name": "behaviors_martin_verner",
   "trees": [
+    "Theseus\\MoveWaitCorners.bt",
     "Theseus\\TheseusAdvance.bt"
   ],
   "initScripts": [
-    "Theseus\\Theseus.class.lua"
+    "Theseus\\Theseus.class.lua",
+    "classes.lua"
   ],
   "parameters": {},
   "capabilities": {}

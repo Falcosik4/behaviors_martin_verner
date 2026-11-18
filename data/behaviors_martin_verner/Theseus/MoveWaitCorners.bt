@@ -1,0 +1,228 @@
+{
+  "name": "<unnamed>",
+  "id": "712fdbe4-22d4-4968-b95f-778b71e31a57",
+  "type": "supervisedParallel",
+  "subtrees": [
+    {
+      "name": "Succeed",
+      "id": "fdaf6639-5f12-4b81-ad81-515ad37a3718",
+      "type": "success",
+      "decorators": [
+        {
+          "id": "f0682c8e-3b38-47ce-b174-838323648785",
+          "type": "loopForever",
+          "name": "Build and draw path"
+        },
+        {
+          "id": "bdfc2bcd-22b0-4ff4-a915-348e21a32092",
+          "type": "scriptAction",
+          "name": "Build path",
+          "script": [
+            "local future = self:GetPath()",
+            "if future:IsReady() then",
+            "  loc.path = future:Value()",
+            "  if loc.path == nil then",
+            "    -- entity is not following a path",
+            "  end",
+            "end"
+          ]
+        },
+        {
+          "id": "acc377e8-e4dd-4bc6-a527-9094c4af147b",
+          "type": "scriptAction",
+          "name": "Hihglight Path",
+          "script": [
+            "if loc.path ~= null then",
+            "    local num_segments = 20.0",
+            "    local segment_step = loc.path:Length() / num_segments",
+            "    for i=0, num_segments - 1.0, 1.0 do",
+            "        ai_core_public.draw.Line(",
+            "        loc.path:PositionAlongPath(i * segment_step),",
+            "        loc.path:PositionAlongPath((i+1) * segment_step),",
+            "        0, 0, 1, 1",
+            "        )",
+            "    end",
+            "end"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "<unnamed>",
+      "id": "548b2d0a-79f3-4ee8-9b21-464005e6fcd1",
+      "type": "selector",
+      "subtrees": [
+        {
+          "name": "Reset counters",
+          "id": "1bbe4377-5755-44cf-be1c-09d8ba96bed4",
+          "type": "scriptAction",
+          "decorators": [
+            {
+              "id": "8218d2c0-ed4c-4521-af71-8495ff2c3eb1",
+              "type": "scriptCondition",
+              "name": "Target Changed?",
+              "script": [
+                "return arg.target ~= loc.previousDest"
+              ]
+            }
+          ],
+          "script": [
+            "loc.previousDest = arg.target",
+            "loc.currentStepNum=0",
+            "loc.path=nil"
+          ]
+        },
+        {
+          "name": "Succeed",
+          "id": "ab9abeea-f75e-4b49-8fdc-107cd8aff3cf",
+          "type": "success"
+        }
+      ],
+      "active": true
+    },
+    {
+      "name": "Move or choose new target",
+      "id": "816c6697-29e2-472f-a288-c085471e806c",
+      "type": "selector",
+      "subtrees": [
+        {
+          "name": "Select new next target",
+          "id": "33358d2d-fc4f-4258-bce4-ed1dd42115b0",
+          "type": "scriptAction",
+          "decorators": [
+            {
+              "id": "d5de3cdb-c1f6-4eab-bf99-186376f7a61e",
+              "type": "scriptCondition",
+              "name": "CloseEnoughToNextTarget",
+              "script": [
+                "return loc.path ~= nil and (loc.nextTarget==nil or (self:GetPosition() - loc.nextTarget):Norm() < loc.targetDistance)"
+              ]
+            }
+          ],
+          "script": [
+            "loc.currentStepNum = loc.currentStepNum+1",
+            "local currentDistance = loc.defaultStepDistance * loc.currentStepNum",
+            "loc.nextTarget = loc.path:PositionAlongPath(currentDistance)",
+            "if loc.nextTarget ~=nil then",
+            "    local dir = loc.path:DirectionAlongPath(currentDistance)",
+            "    local turnAngle = MathExt.AngleDiff(dir, self:GetHeading())",
+            "    DebugLog(\"Next direction: \" .. tostring(dir) .. \"... current direction: \" .. self:GetHeading() .. \" ... angle: \" .. turnAngle)",
+            "    if math.abs(turnAngle) > 15 then",
+            "        loc.waits=true",
+            "    else",
+            "        loc.waits=false",
+            "    end",
+            "else",
+            "    DebugLog(\"WTF WHY IS IT NULL KURWAAA\")",
+            "end"
+          ]
+        },
+        {
+          "name": "<unnamed>",
+          "id": "7ffd76f2-3460-4803-b87c-5ca04d879e3b",
+          "type": "selector",
+          "subtrees": [
+            {
+              "name": "Set wait to false",
+              "id": "5fb67e82-9c8b-4b46-b12a-c516b99a9df8",
+              "type": "scriptAction",
+              "decorators": [
+                {
+                  "id": "b0bb6bac-87e1-4ed6-b0f6-7fa96aa692f4",
+                  "type": "scriptCondition",
+                  "name": "Is waiting?",
+                  "script": [
+                    "return loc.waits"
+                  ]
+                },
+                {
+                  "id": "b3428596-8566-4d6d-90d9-ea20bd301618",
+                  "type": "wait",
+                  "name": "Wait for 1,5s",
+                  "time": [
+                    "return 1.5"
+                  ]
+                }
+              ],
+              "script": [
+                "loc.waits=false"
+              ]
+            },
+            {
+              "name": "Move",
+              "id": "70a04a6c-be45-4e74-88c8-0ab767ab338f",
+              "type": "move",
+              "position": [
+                "arg.target"
+              ]
+            }
+          ],
+          "active": true
+        }
+      ],
+      "active": true
+    }
+  ],
+  "meta": {
+    "nodesInfo": [
+      {
+        "id": "712fdbe4-22d4-4968-b95f-778b71e31a57",
+        "position": "2000,150"
+      },
+      {
+        "id": "fdaf6639-5f12-4b81-ad81-515ad37a3718",
+        "position": "1587.5,262.5"
+      },
+      {
+        "id": "548b2d0a-79f3-4ee8-9b21-464005e6fcd1",
+        "position": "1917.32151126492,333.333333333333"
+      },
+      {
+        "id": "1bbe4377-5755-44cf-be1c-09d8ba96bed4",
+        "position": "1762.5,425"
+      },
+      {
+        "id": "ab9abeea-f75e-4b49-8fdc-107cd8aff3cf",
+        "position": "1950,425"
+      },
+      {
+        "id": "816c6697-29e2-472f-a288-c085471e806c",
+        "position": "2350,287.5"
+      },
+      {
+        "id": "33358d2d-fc4f-4258-bce4-ed1dd42115b0",
+        "position": "2125,487.5"
+      },
+      {
+        "id": "7ffd76f2-3460-4803-b87c-5ca04d879e3b",
+        "position": "2487.5,500"
+      },
+      {
+        "id": "5fb67e82-9c8b-4b46-b12a-c516b99a9df8",
+        "position": "2362.5,625"
+      },
+      {
+        "id": "70a04a6c-be45-4e74-88c8-0ab767ab338f",
+        "position": "2562.5,625"
+      }
+    ],
+    "editorObjects": [],
+    "canvasSize": "3840,2400"
+  },
+  "parameters": [
+    {
+      "name": "target",
+      "isOptional": false,
+      "defaultValue": ""
+    }
+  ],
+  "locals": {
+    "waits": "false",
+    "nextTarget": "nil",
+    "currentStepNum": "0",
+    "defaultStepDistance": "2",
+    "targetDistance": "0.75",
+    "path": "nil",
+    "previousDest": "nil"
+  }
+}
