@@ -20,28 +20,10 @@
           "script": [
             "local future = self:GetPath()",
             "if future:IsReady() then",
-            "  loc.path = future:Value()",
-            "  if loc.path == nil then",
+            "  bb.path = future:Value()",
+            "  if bb.path == nil then",
             "    -- entity is not following a path",
             "  end",
-            "end"
-          ]
-        },
-        {
-          "id": "acc377e8-e4dd-4bc6-a527-9094c4af147b",
-          "type": "scriptAction",
-          "name": "Hihglight Path",
-          "script": [
-            "if loc.path ~= null then",
-            "    local num_segments = 20.0",
-            "    local segment_step = loc.path:Length() / num_segments",
-            "    for i=0, num_segments - 1.0, 1.0 do",
-            "        ai_core_public.draw.Line(",
-            "        loc.path:PositionAlongPath(i * segment_step),",
-            "        loc.path:PositionAlongPath((i+1) * segment_step),",
-            "        0, 0, 1, 1",
-            "        )",
-            "    end",
             "end"
           ]
         }
@@ -69,7 +51,7 @@
           "script": [
             "loc.previousDest = arg.target",
             "loc.currentStepNum=0",
-            "loc.path=nil"
+            "bb.path=nil"
           ]
         },
         {
@@ -95,16 +77,16 @@
               "type": "scriptCondition",
               "name": "CloseEnoughToNextTarget",
               "script": [
-                "return loc.path ~= nil and (loc.nextTarget==nil or (self:GetPosition() - loc.nextTarget):Norm() < loc.targetDistance)"
+                "return bb.path ~= nil and (loc.nextTarget==nil or (self:GetPosition() - loc.nextTarget):Norm() < loc.targetDistance)"
               ]
             }
           ],
           "script": [
             "loc.currentStepNum = loc.currentStepNum+1",
             "local currentDistance = loc.defaultStepDistance * loc.currentStepNum",
-            "loc.nextTarget = loc.path:PositionAlongPath(currentDistance)",
+            "loc.nextTarget = bb.path:PositionAlongPath(currentDistance)",
             "if loc.nextTarget ~=nil then",
-            "    local dir = loc.path:DirectionAlongPath(currentDistance)",
+            "    local dir = bb.path:DirectionAlongPath(currentDistance)",
             "    local turnAngle = MathExt.AngleDiff(dir, self:GetHeading())",
             "    DebugLog(\"Next direction: \" .. tostring(dir) .. \"... current direction: \" .. self:GetHeading() .. \" ... angle: \" .. turnAngle)",
             "    if math.abs(turnAngle) > 15 then",
@@ -112,8 +94,6 @@
             "    else",
             "        loc.waits=false",
             "    end",
-            "else",
-            "    DebugLog(\"WTF WHY IS IT NULL KURWAAA\")",
             "end"
           ]
         },
@@ -138,9 +118,9 @@
                 {
                   "id": "b3428596-8566-4d6d-90d9-ea20bd301618",
                   "type": "wait",
-                  "name": "Wait for 1,5s",
+                  "name": "Wait for 1s",
                   "time": [
-                    "return 1.5"
+                    "return 1.0"
                   ]
                 }
               ],
@@ -222,7 +202,6 @@
     "currentStepNum": "0",
     "defaultStepDistance": "2",
     "targetDistance": "0.75",
-    "path": "nil",
     "previousDest": "nil"
   }
 }
