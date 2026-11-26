@@ -40,86 +40,58 @@
           "type": "selector",
           "subtrees": [
             {
-              "name": "Lock target and fire",
-              "id": "c8f974dc-8906-4725-9cc4-72e8eb8466d3",
+              "name": "fight",
+              "id": "dd7deb64-4a21-4bba-90d7-fdb6206a1d70",
               "type": "sequence",
               "subtrees": [
                 {
-                  "name": "Get Target position",
-                  "id": "6c98ac0a-698b-4a3d-97e8-9a299e2407f1",
+                  "name": "Aim",
+                  "id": "eff7fb73-173c-4e30-8050-a98574e9c465",
                   "type": "scriptAction",
                   "script": [
-                    "if #loc.enemies > 0 then",
-                    "    loc.target = loc.enemies[1]",
-                    "else loc.target = nil",
-                    "end"
+                    "self:ReqHeadingAimAtEntity(loc.target)"
                   ]
                 },
                 {
-                  "name": "fight",
-                  "id": "dd7deb64-4a21-4bba-90d7-fdb6206a1d70",
-                  "type": "sequence",
+                  "name": "fire within limit",
+                  "id": "b954699f-536b-4d69-844c-36b67c2819b6",
+                  "type": "parallel",
                   "subtrees": [
                     {
-                      "name": "Aim",
-                      "id": "eff7fb73-173c-4e30-8050-a98574e9c465",
-                      "type": "scriptAction",
-                      "script": [
-                        "self:ReqHeadingAimAtEntity(loc.target)"
-                      ]
+                      "name": "Fire",
+                      "id": "6ce9e6e0-3fc2-46dd-a239-e127aa485b65",
+                      "type": "fire",
+                      "rounds": [
+                        "return 30"
+                      ],
+                      "forced": false
                     },
                     {
-                      "name": "fire within limit",
-                      "id": "b954699f-536b-4d69-844c-36b67c2819b6",
-                      "type": "parallel",
-                      "subtrees": [
+                      "name": "Fire",
+                      "id": "a33156cb-478f-43a3-8c46-d3f54bf24703",
+                      "type": "fire",
+                      "decorators": [
                         {
-                          "name": "Fire",
-                          "id": "6ce9e6e0-3fc2-46dd-a239-e127aa485b65",
-                          "type": "fire",
-                          "rounds": [
-                            "return 30"
-                          ],
-                          "forced": false
-                        },
-                        {
-                          "name": "Fire",
-                          "id": "a33156cb-478f-43a3-8c46-d3f54bf24703",
-                          "type": "fire",
-                          "decorators": [
-                            {
-                              "id": "20fb94f0-df37-45f9-8e5f-299e75d81e23",
-                              "type": "wait",
-                              "name": "2",
-                              "time": [
-                                "return 1.4"
-                              ]
-                            }
-                          ],
-                          "rounds": [
-                            "return 10"
-                          ],
-                          "forced": true
+                          "id": "20fb94f0-df37-45f9-8e5f-299e75d81e23",
+                          "type": "wait",
+                          "name": "2",
+                          "time": [
+                            "return 1.4"
+                          ]
                         }
                       ],
-                      "waitForAll": true
-                    },
-                    {
-                      "name": "Reload",
-                      "id": "5138db2c-d1c0-4d51-8f83-39a8b6fb2c5c",
-                      "type": "reloadWeapon"
+                      "rounds": [
+                        "return 10"
+                      ],
+                      "forced": true
                     }
                   ],
-                  "decorators": [
-                    {
-                      "id": "ffa134fe-403b-4939-a1e2-2763ec9b4461",
-                      "type": "scriptCondition",
-                      "name": "Target not null",
-                      "script": [
-                        "return loc.target ~=nil"
-                      ]
-                    }
-                  ]
+                  "waitForAll": true
+                },
+                {
+                  "name": "Reload",
+                  "id": "5138db2c-d1c0-4d51-8f83-39a8b6fb2c5c",
+                  "type": "reloadWeapon"
                 }
               ],
               "decorators": [
@@ -128,16 +100,22 @@
                   "type": "scriptCondition",
                   "name": "Can see minotaur ?",
                   "script": [
-                    "-- infantryman soldier override reaction",
-                    "local visible = self:GetVisibleEnemies(300)",
-                    "DebugLog(\"visible enemies: \" .. tostring(visible and #visible))",
-                    "",
-                    "loc.enemies =#visible > 0 and visible or nil",
-                    "if loc.enemies == nil then",
-                    "    return false",
+                    "local nearbyEnemies = GetEntitiesInArea(Circle(self:GetPosition(), self:GetVisibilityRange()), { hasBrain=true, enemyOf=self})",
+                    "DebugLog(\"Nearby enemies: \" .. #nearbyEnemies)",
+                    "loc.target = nil",
+                    "for i,entity in ipairs(nearbyEnemies) do",
+                    "    DebugLog(\"-Is visible? \" .. tostring(self:IsVisible(entity)))",
+                    "\tif self:IsVisible(entity) then",
+                    "\t\tloc.target = entity",
+                    "\t    break",
+                    "    end",
                     "end",
-                    "DebugLog(\"Ja t\u011b vid\u00edm\")",
-                    "return true"
+                    "",
+                    "",
+                    "DebugLog(\"Has target? \" .. tostring(loc.target ~= nil))",
+                    "DebugLog(\"--\")",
+                    "",
+                    "return loc.target ~= nil"
                   ]
                 }
               ]
@@ -239,6 +217,26 @@
   ],
   "unlinked-trees": [
     {
+      "name": "Get Target position",
+      "id": "6c98ac0a-698b-4a3d-97e8-9a299e2407f1",
+      "type": "scriptAction",
+      "meta": {
+        "nodesInfo": [
+          {
+            "id": "6c98ac0a-698b-4a3d-97e8-9a299e2407f1",
+            "position": "1912.5,1000"
+          }
+        ],
+        "editorObjects": []
+      },
+      "script": [
+        "if #loc.enemies > 0 then",
+        "    loc.target = loc.enemies[1]",
+        "else loc.target = nil",
+        "end"
+      ]
+    },
+    {
       "name": "look for targets",
       "id": "ff48f864-9770-4ea6-8df9-13c9869d8337",
       "type": "scriptAction",
@@ -262,6 +260,23 @@
         "end",
         "DebugLog(\"Ja t\u011b vid\u00edm\")",
         "return true"
+      ]
+    },
+    {
+      "name": "Target not null",
+      "id": "ffa134fe-403b-4939-a1e2-2763ec9b4461",
+      "type": "scriptCondition",
+      "meta": {
+        "nodesInfo": [
+          {
+            "id": "ffa134fe-403b-4939-a1e2-2763ec9b4461",
+            "position": "1912.5,900"
+          }
+        ],
+        "editorObjects": []
+      },
+      "script": [
+        "return loc.target ~=nil"
       ]
     }
   ],
@@ -294,36 +309,28 @@
         "position": "2550,562.5"
       },
       {
-        "id": "c8f974dc-8906-4725-9cc4-72e8eb8466d3",
-        "position": "2325,700"
-      },
-      {
-        "id": "6c98ac0a-698b-4a3d-97e8-9a299e2407f1",
-        "position": "2012.5,1000"
-      },
-      {
         "id": "dd7deb64-4a21-4bba-90d7-fdb6206a1d70",
-        "position": "2325,837.5"
+        "position": "2375,687.5"
       },
       {
         "id": "eff7fb73-173c-4e30-8050-a98574e9c465",
-        "position": "2250,1000"
+        "position": "2200,837.5"
       },
       {
         "id": "b954699f-536b-4d69-844c-36b67c2819b6",
-        "position": "2412.5,1000"
+        "position": "2362.5,837.5"
       },
       {
         "id": "6ce9e6e0-3fc2-46dd-a239-e127aa485b65",
-        "position": "2312.5,1137.5"
+        "position": "2262.5,975"
       },
       {
         "id": "a33156cb-478f-43a3-8c46-d3f54bf24703",
-        "position": "2475,1112.5"
+        "position": "2425,950"
       },
       {
         "id": "5138db2c-d1c0-4d51-8f83-39a8b6fb2c5c",
-        "position": "2587.5,1000"
+        "position": "2537.5,837.5"
       },
       {
         "id": "49936068-1aba-455a-a2e3-117197a011ec",
