@@ -200,8 +200,8 @@
     "waits": "false",
     "nextTarget": "nil",
     "currentStepNum": "0",
-    "defaultStepDistance": "2",
-    "targetDistance": "0.75",
+    "defaultStepDistance": "2.5",
+    "targetDistance": "1.0",
     "previousDest": "nil"
   }
 }
